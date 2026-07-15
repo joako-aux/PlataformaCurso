@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="apigateway" />
+        <module name="usuario-service" />
+        <module name="auth-service" />
+        <module name="curso-service" />
+        <module name="register-service" />
+        <module name="notificacion-service" />
+        <module name="historial-service" />
+        <module name="inscripciones-service" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="apigateway" options="-parameters" />
+      <module name="auth-service" options="-parameters" />
+      <module name="curso-service" options="-parameters" />
+      <module name="historial-service" options="-parameters" />
+      <module name="inscripciones-service" options="-parameters" />
+      <module name="notificacion-service" options="-parameters" />
+      <module name="register-service" options="-parameters" />
+      <module name="usuario-service" options="-parameters" />
+    </option>
+  </component>
+</project>
