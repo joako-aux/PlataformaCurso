@@ -24,7 +24,6 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
 
-        // Convertimos la clave configurada en el properties a SecretKey
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 
         return Jwts.builder()

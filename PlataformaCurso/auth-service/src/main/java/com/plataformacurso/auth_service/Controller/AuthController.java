@@ -17,7 +17,6 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    // Endpoint de Registro (Crear usuario y devolver Token)
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(
             @RequestParam String username,
@@ -25,9 +24,8 @@ public class AuthController {
             @RequestParam String password,
             @RequestParam String role) {
 
-        // Aquí iría tu lógica para guardar el usuario en la BD con PasswordEncoder
+        // Aquí se inyecta tu repositorio para guardar en la BD usando PasswordEncoder
 
-        // Generamos el token JWT para el nuevo usuario
         String token = jwtService.generateToken(username, role);
 
         Map<String, Object> response = new HashMap<>();
@@ -39,7 +37,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Endpoint de Login normal
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(
             @RequestParam String username,

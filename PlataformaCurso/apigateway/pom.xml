@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.7</version> <!-- Tu versión exacta de Spring Boot -->
+		<version>4.0.7</version>
 		<relativePath/>
 	</parent>
 
@@ -17,31 +17,31 @@
 	<description>API Gateway central para Plataforma de Cursos</description>
 
 	<properties>
-		<java.version>17</java.version> <!-- Tu versión de Java -->
-		<spring-cloud.version>2025.0.0</spring-cloud.version> <!-- Compatible con Spring Boot 4.x -->
+		<java.version>17</java.version>
+		<spring-cloud.version>2025.0.0-M1</spring-cloud.version>
 	</properties>
 
 	<dependencies>
-		<!-- Spring Cloud Gateway (Asíncrono y Reactivo) -->
+		<!-- Servidor Gateway Reactivo adaptado a Boot 4.x -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-gateway</artifactId>
+			<artifactId>spring-cloud-gateway-server</artifactId>
 		</dependency>
 
-		<!-- Eureka Client para registrarse en el register-service -->
+		<!-- Eureka Client -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 
-		<!-- Swagger/OpenAPI WebFlux adaptado para Gateway reactivo -->
+		<!-- Swagger/OpenAPI WebFlux -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
 			<version>2.6.0</version>
 		</dependency>
 
-		<!-- Lombok (para reducir código repetitivo si lo necesitas) -->
+		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -84,4 +84,15 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<id>spring-milestones</id>
+			<name>Spring Milestones</name>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>
