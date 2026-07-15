@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.0</version>
+		<version>4.0.7</version> <!-- Tu versión exacta de Spring Boot -->
 		<relativePath/>
 	</parent>
 
@@ -17,31 +17,38 @@
 	<description>API Gateway central para Plataforma de Cursos</description>
 
 	<properties>
-		<java.version>21</java.version>
-		<spring-cloud.version>2024.0.0</spring-cloud.version>
+		<java.version>17</java.version> <!-- Tu versión de Java -->
+		<spring-cloud.version>2025.0.0</spring-cloud.version> <!-- Compatible con Spring Boot 4.x -->
 	</properties>
 
 	<dependencies>
-		<!-- Spring Cloud Gateway -->
+		<!-- Spring Cloud Gateway (Asíncrono y Reactivo) -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-gateway</artifactId>
 		</dependency>
 
-		<!-- Eureka Client (Para descubrir microservicios) -->
+		<!-- Eureka Client para registrarse en el register-service -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 
-		<!-- Swagger/OpenAPI WebFlux (Adaptado al API Gateway asíncrono) -->
+		<!-- Swagger/OpenAPI WebFlux adaptado para Gateway reactivo -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
 			<version>2.6.0</version>
 		</dependency>
 
-		<!-- Spring Boot Starter Test -->
+		<!-- Lombok (para reducir código repetitivo si lo necesitas) -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -66,6 +73,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
