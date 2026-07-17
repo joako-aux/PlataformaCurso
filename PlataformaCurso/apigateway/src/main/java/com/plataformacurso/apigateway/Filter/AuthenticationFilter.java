@@ -1,10 +1,12 @@
 package com.plataformacurso.apigateway.Filter;
 
+import com.plataformacurso.apigateway.Config.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -12,44 +14,56 @@ import reactor.core.publisher.Mono;
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
     public AuthenticationFilter() {
         super(Config.class);
     }
 
     public static class Config {
-        // Puedes agregar propiedades de configuración si las necesitas más adelante
+        // Añadir propiedades de configuración si es necesario
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            String path = request.getURI().getPath();
 
-            // 🌟 CLAVE: Si la ruta es pública (/api/auth), dejamos pasar la petición inmediatamente sin validar nada
-            if (path.contains("/api/auth/")) {
-                return chain.filter(exchange);
+            // 1. Validar si el Header de Autorización existe
+            if (!request.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
+                return onError(exchange, "Falta el encabezado de autorización", HttpStatus.UNAUTHORIZED);
             }
 
-            // Aquí va tu lógica actual para rutas protegidas.
-            // Si no viene la cabecera Authorization, se bloquea con 403.
-            if (!request.getHeaders().containsKey("Authorization")) {
-                return onError(exchange, HttpStatus.FORBIDDEN);
-            }
+            String authHeader = request.getHeaders().getOrEmpty(HttpHeaders.AUTHORIZATION).get(0);
 
-            String authHeader = request.getHeaders().getFirst("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return onError(exchange, HttpStatus.FORBIDDEN);
+                return onError(exchange, "Estructura de token inválida", HttpStatus.UNAUTHORIZED);
             }
 
-            // Si pasa las validaciones de token, continúa el flujo normal
-            return chain.filter(exchange);
+            // 2. Extraer el string del Token
+            String token = authHeader.substring(7);
+
+            try {
+                // 3. Validar con JwtUtils empleando la clave secreta compartida
+                jwtUtils.validateToken(token);
+
+                // Opcional: Pasar el usuario verificado hacia los microservicios de destino vía Header interno
+                String username = jwtUtils.extractUsername(token);
+                request = exchange.getRequest().mutate()
+                        .header("X-User-Username", username)
+                        .build();
+
+            } catch (Exception e) {
+                return onError(exchange, "Token inválido o expirado", HttpStatus.UNAUTHORIZED);
+            }
+
+            return chain.filter(exchange.mutate().request(request).build());
         };
     }
 
-    private Mono<Void> onError(ServerWebExchange exchange, HttpStatus httpStatus) {
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(httpStatus);
-        return response.setComplete();
+    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+        exchange.getResponse().setStatusCode(httpStatus);
+        return exchange.getResponse().setComplete();
     }
 }

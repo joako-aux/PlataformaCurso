@@ -7,9 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="apigateway" />
-        <module name="auth-service" />
         <module name="curso-service" />
         <module name="register-service" />
+        <module name="auth-service" />
         <module name="notificacion-service" />
         <module name="historial-service" />
         <module name="inscripciones-service" />

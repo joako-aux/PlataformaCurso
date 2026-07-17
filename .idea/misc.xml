@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="KubernetesApiProvider"><![CDATA[{}]]></component>
+  <component name="KubernetesApiProvider">{}</component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/PlataformaCurso/apigateway/pom.xml" />
-        <option value="$PROJECT_DIR$/PlataformaCurso/auth-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/curso-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/usuario-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/register-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/historial-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/notificacion-service/pom.xml" />
         <option value="$PROJECT_DIR$/PlataformaCurso/inscripciones-service/pom.xml" />
+        <option value="$PROJECT_DIR$/PlataformaCurso/auth-service/pom.xml" />
       </list>
     </option>
   </component>
