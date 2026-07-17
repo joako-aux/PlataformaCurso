@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
-@EnableDiscoveryClient // Habilita el cliente de descubrimiento (Eureka Client)
+//@EnableDiscoveryClient // Habilita el cliente de descubrimiento (Eureka Client)
 public class UsuarioServiceApplication {
 
 	public static void main(String[] args) {
