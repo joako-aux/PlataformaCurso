@@ -1,63 +1,65 @@
 package com.plataformacurso.auth_service.Controller;
 
-import com.plataformacurso.auth_service.Config.JwtUtil;
 import com.plataformacurso.auth_service.Model.AuthResponse;
 import com.plataformacurso.auth_service.Model.LoginRequest;
-import com.plataformacurso.auth_service.Model.RegisterRequest;
 import com.plataformacurso.auth_service.Service.AuthService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.plataformacurso.auth_service.Service.JwtService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
-@RequestMapping("/auth")
-@RequiredArgsConstructor
-@Tag(name = "Autenticación", description = "Endpoints para registro y login")
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private final AuthService authService;
+    @Autowired
+    private AuthService authService;
 
-    @PostMapping("/register")
-    @Operation(summary = "Registrar un usuario", description = "Crea una cuenta en BD y retorna el token JWT de inmediato.")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        log.info("[AUTH SERVICE] Solicitud de registro recibida para: {}", registerRequest.getUsername());
-
-        authService.registrarUsuario(registerRequest);
-
-        String token = jwtUtil.generateToken(registerRequest.getUsername(), registerRequest.getRole());
-        return ResponseEntity.ok(new AuthResponse(token));
-    }
+    // 1. INYECTAMOS el servicio de JWT para poder usar la validación abajo
+    @Autowired
+    private JwtService jwtService;
 
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesión", description = "Valida las credenciales y devuelve el Token JWT.")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
-        log.info("[AUTH SERVICE] Intento de login para: {}", loginRequest.getUsername());
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
-            );
+    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
+        // 2. CORRECCIÓN: Capturamos el AuthResponse completo
+        AuthResponse authResponse = authService.login(loginRequest);
 
-            String role = authentication.getAuthorities().stream()
-                    .findFirst()
-                    .map(r -> r.getAuthority())
-                    .orElse("ROLE_USER");
+        // Extraemos el string del token que está guardado dentro del objeto AuthResponse
+        String token = authResponse.getToken();
 
-            String token = jwtUtil.generateToken(loginRequest.getUsername(), role);
-            return ResponseEntity.ok(new AuthResponse(token));
+        Map<String, String> response = new HashMap<>();
+        response.put("Token Generado", token);
 
-        } catch (Exception e) {
-            log.error("[AUTH SERVICE] Error de autenticación para {}: {}", loginRequest.getUsername(), e.getMessage());
-            return ResponseEntity.status(401).body("Credenciales incorrectas: " + e.getMessage());
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/validate")
+    public ResponseEntity<Map<String, Object>> validateToken(@RequestHeader("Authorization") String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.put("valido", false);
+            response.put("mensaje", "Formato de token inválido o ausente");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        String token = authHeader.substring(7);
+
+        // 3. CORRECCIÓN: Llamamos a jwtService.isTokenValid en vez de authService
+        boolean isValid = jwtService.isTokenValid(token);
+
+        if (isValid) {
+            response.put("valido", true);
+            response.put("mensaje", "El token es completamente válido");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("valido", false);
+            response.put("mensaje", "Token inválido o expirado");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
 }

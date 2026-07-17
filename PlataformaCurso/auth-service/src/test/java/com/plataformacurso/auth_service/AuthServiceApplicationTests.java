@@ -1,97 +1,102 @@
 package com.plataformacurso.auth_service;
 
-import com.plataformacurso.auth_service.Config.JwtUtil;
-import com.plataformacurso.auth_service.Controller.AuthController;
 import com.plataformacurso.auth_service.Model.AuthResponse;
 import com.plataformacurso.auth_service.Model.LoginRequest;
-import com.plataformacurso.auth_service.Model.RegisterRequest;
+import com.plataformacurso.auth_service.Model.Usuario;
+import com.plataformacurso.auth_service.Repository.UsuarioRepository;
 import com.plataformacurso.auth_service.Service.AuthService;
+import com.plataformacurso.auth_service.Service.JwtService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@Slf4j
+@ExtendWith(MockitoExtension.class)
 class AuthServiceApplicationTests {
 
 	@Mock
-	private AuthenticationManager authenticationManager;
+	private UsuarioRepository usuarioRepository;
 
 	@Mock
-	private JwtUtil jwtUtil;
+	private PasswordEncoder passwordEncoder;
 
 	@Mock
-	private AuthService authService;
+	private JwtService jwtService;
 
 	@InjectMocks
-	private AuthController authController;
+	private AuthService authService;
+
+	private LoginRequest loginRequest;
+	private Usuario usuarioMock;
 
 	@BeforeEach
 	void setUp() {
-		MockitoAnnotations.openMocks(this);
+		// Inicializamos los datos compartidos de prueba
+		loginRequest = new LoginRequest();
+		loginRequest.setEmail("moises@correo.com");
+		loginRequest.setPassword("Password123");
+
+		usuarioMock = Usuario.builder()
+				.email("moises@correo.com")
+				.password("passwordEncriptado123") // Simula la clave ya cifrada en la BD
+				.build();
 	}
 
 	@Test
-	void login_DeberiaRetornarToken_CuandoCredencialesSeanCorrectas() {
-		LoginRequest request = new LoginRequest("joaquin.perez", "Password123!");
-		Authentication authentication = mock(Authentication.class);
+	@DisplayName("Debería iniciar sesión exitosamente cuando las credenciales son correctas")
+	void loginExitoso() {
+		log.info("Ejecutando test: loginExitoso");
 
-		doReturn(Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")))
-				.when(authentication).getAuthorities();
+		// GIVEN
+		when(usuarioRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.of(usuarioMock));
+		when(passwordEncoder.matches(loginRequest.getPassword(), usuarioMock.getPassword())).thenReturn(true);
+		// Usamos any() genérico para evitar conflictos con la firma de java.util.Map en Mockito
+		when(jwtService.generateToken(anyString(), any())).thenReturn("jwt.token.valido");
 
-		when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-				.thenReturn(authentication);
-		when(jwtUtil.generateToken("joaquin.perez", "ROLE_USER")).thenReturn("mocked-jwt-token-login");
+		// WHEN
+		AuthResponse response = authService.login(loginRequest);
 
-		ResponseEntity<?> response = authController.login(request);
+		// THEN
+		assertNotNull(response);
+		assertEquals("jwt.token.valido", response.getToken());
 
-		assertEquals(200, response.getStatusCode().value());
-		assertNotNull(response.getBody());
-		assertTrue(response.getBody() instanceof AuthResponse);
-
-		AuthResponse authResponse = (AuthResponse) response.getBody();
-		assertEquals("mocked-jwt-token-login", authResponse.getAccessToken());
+		// Verificar que los mocks se llamaron el número correcto de veces
+		verify(usuarioRepository, times(1)).findByEmail(loginRequest.getEmail());
+		verify(passwordEncoder, times(1)).matches(loginRequest.getPassword(), usuarioMock.getPassword());
+		verify(jwtService, times(1)).generateToken(anyString(), any());
 	}
 
 	@Test
-	void login_DeberiaRetornar401_CuandoCredencialesSeanIncorrectas() {
-		LoginRequest request = new LoginRequest("usuario.incorrecto", "ClaveInvalida");
+	@DisplayName("Debería lanzar excepción cuando el email no existe en la base de datos")
+	void loginEmailNoEncontrado() {
+		log.info("Ejecutando test: loginEmailNoEncontrado");
 
-		when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-				.thenThrow(new BadCredentialsException("Bad credentials"));
+		// GIVEN
+		when(usuarioRepository.findByEmail(loginRequest.getEmail())).thenReturn(Optional.empty());
 
-		ResponseEntity<?> response = authController.login(request);
+		// WHEN & THEN
+		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+			authService.login(loginRequest);
+		});
 
-		assertEquals(401, response.getStatusCode().value());
-		assertNotNull(response.getBody());
-		assertTrue(response.getBody().toString().contains("Credenciales incorrectas"));
-	}
+		assertEquals("Email no encontrado", exception.getMessage());
 
-	@Test
-	void register_DeberiaGuardarUsuarioYRetornarTokenAutomatico_CuandoRegistroSeaExitoso() {
-		RegisterRequest request = new RegisterRequest("moise.fonseca", "SecurePass456!", "ROLE_USER");
-
-		doNothing().when(authService).registrarUsuario(any(RegisterRequest.class));
-		when(jwtUtil.generateToken("moise.fonseca", "ROLE_USER")).thenReturn("token-automatico-registro");
-
-		ResponseEntity<AuthResponse> response = authController.register(request);
-
-		assertEquals(200, response.getStatusCode().value());
-		assertNotNull(response.getBody());
-		assertEquals("token-automatico-registro", response.getBody().getAccessToken());
-
-		verify(authService, times(1)).registrarUsuario(request);
+		// Verificaciones de flujo
+		verify(usuarioRepository, times(1)).findByEmail(loginRequest.getEmail());
+		verifyNoInteractions(passwordEncoder);
+		verifyNoInteractions(jwtService);
 	}
 }

@@ -1,52 +1,71 @@
 package com.plataformacurso.auth_service.Service;
 
+import com.plataformacurso.auth_service.Model.AuthResponse;
+import com.plataformacurso.auth_service.Model.LoginRequest;
 import com.plataformacurso.auth_service.Model.RegisterRequest;
 import com.plataformacurso.auth_service.Model.Usuario;
 import com.plataformacurso.auth_service.Repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.HashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService implements UserDetailsService {
+public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public void registrarUsuario(RegisterRequest request) {
-        if (usuarioRepository.findByUsername(request.getUsername()).isPresent()) {
-            log.error("[AUTH SERVICE] El nombre de usuario {} ya existe.", request.getUsername());
-            throw new RuntimeException("El nombre de usuario ya está registrado");
+    public AuthResponse register(RegisterRequest request) {
+        log.info("Iniciando registro para el usuario: {}", request.getEmail());
+
+        // 1. Verificamos si el email ya existe para evitar colisiones en la DB
+        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("El email ya se encuentra registrado");
         }
 
-        Usuario nuevoUsuario = new Usuario();
-        nuevoUsuario.setUsername(request.getUsername());
-        nuevoUsuario.setPassword(passwordEncoder.encode(request.getPassword()));
-        nuevoUsuario.setRole(request.getRole());
+        // 2. Creamos el usuario encriptando OBLIGATORIAMENTE la contraseña
+        Usuario usuario = Usuario.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .build();
 
-        usuarioRepository.save(nuevoUsuario);
-        log.info("[AUTH SERVICE] Usuario {} guardado exitosamente en base de datos.", request.getUsername());
+        usuarioRepository.save(usuario);
+        log.info("Usuario guardado con éxito en la base de datos");
+
+        // 3. Generamos el token JWT para el nuevo usuario
+        String jwtToken = jwtService.generateToken(usuario.getEmail(), new HashMap<>());
+
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
+    public AuthResponse login(LoginRequest request) {
+        log.info("Iniciando sesión para el usuario: {}", request.getEmail());
 
-        return new User(
-                usuario.getUsername(),
-                usuario.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority(usuario.getRole()))
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
         );
+
+        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        String jwtToken = jwtService.generateToken(usuario.getEmail(), new HashMap<>());
+
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .build();
     }
 }

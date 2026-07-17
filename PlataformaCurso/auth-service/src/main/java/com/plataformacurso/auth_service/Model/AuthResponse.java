@@ -2,22 +2,17 @@ package com.plataformacurso.auth_service.Model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
-@Schema(description = "Respuesta que contiene el token JWT generado")
+@NoArgsConstructor
+@Schema(description = "Modelo de respuesta que contiene el token JWT")
 public class AuthResponse {
 
-    @Schema(description = "Tipo de token", example = "Bearer")
-    private String tokenType = "Bearer";
-
-    @Schema(description = "Token de acceso generado")
-    private String accessToken;
-
-    public AuthResponse(String accessToken) {
-        this.accessToken = accessToken;
-    }
+    @Schema(description = "Token de acceso generado (JWT)", example = "eyJhbGciOiJIUzI1NiIsIn...")
+    private String token;
 }
