@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # Motor de Base de Datos (MySQL)
+  # ==========================================
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - plataforma-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-padmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Servidor de Descubrimiento (Eureka)
+  # ==========================================
+  register-service:
+    build: ./register-service
+    container_name: register-service
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+    networks:
+      - plataforma-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Microservicio de Autenticación
+  # ==========================================
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+  # ==========================================
+  # Microservicio de Usuarios
+  # ==========================================
+  usuario-service:
+    build: ./usuario-service
+    container_name: usuario-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+  # ==========================================
+  # Microservicio de Cursos
+  # ==========================================
+  curso-service:
+    build: ./curso-service
+    container_name: curso-service
+    ports:
+      - "8083:8083"
+    environment:
+      SERVER_PORT: 8083
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+  # ==========================================
+  # Microservicio de Historial
+  # ==========================================
+  historial-service:
+    build: ./historial-service
+    container_name: historial-service
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: 8085
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+  # ==========================================
+  # Microservicio de Notificaciones
+  # ==========================================
+  notificacion-service:
+    build: ./notificacion-service
+    container_name: notificacion-service
+    ports:
+      - "8086:8086"
+    environment:
+      SERVER_PORT: 8086
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+  # ==========================================
+  # API Gateway
+  # ==========================================
+  apigateway:
+    build: ./apigateway
+    container_name: apigateway
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      EUREKA_SERVER: http://register-service:8761/eureka/
+    depends_on:
+      register-service:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+
+# ==========================================
+# Volúmenes y Redes Comunes
+# ==========================================
+volumes:
+  mysql_data:
+
+networks:
+  plataforma-network:
+    driver: bridge
