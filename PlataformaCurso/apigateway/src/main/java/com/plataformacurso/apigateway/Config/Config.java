@@ -12,9 +12,10 @@ public class Config {
     @Bean
     public CorsWebFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*"); // Permite cualquier cliente
-        config.addAllowedMethod("*"); // Permite GET, POST, PUT, DELETE, etc.
-        config.addAllowedHeader("*"); // Permite cabeceras personalizadas (Authorization/JWT)
+        config.addAllowedOriginPattern("*"); // Soporta credenciales y patrones de origen modernos
+        config.addAllowedMethod("*");        // Permite GET, POST, PUT, DELETE, etc.
+        config.addAllowedHeader("*");        // Permite cualquier cabecera (incluyendo Authorization)
+        config.setAllowCredentials(true);    // Permite cookies/tokens persistentes si fuesen necesarios
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

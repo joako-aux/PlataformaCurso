@@ -1,33 +1,22 @@
 package com.plataformacurso.auth_service.Model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "Modelo para la solicitud de inicio de sesión")
 public class LoginRequest {
+
+    @NotBlank(message = "El nombre de usuario no puede estar vacío")
+    @Schema(example = "joaquin.perez", description = "Nombre de usuario o correo electrónico")
     private String username;
+
+    @NotBlank(message = "La contraseña no puede estar vacía")
+    @Schema(example = "Password123!", description = "Contraseña de la cuenta")
     private String password;
-
-    // Constructor vacío (necesario para que Spring pueda deserializar el JSON)
-    public LoginRequest() {
-    }
-
-    // Constructor con parámetros (opcional, pero útil para pruebas)
-    public LoginRequest(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    // Getters y Setters
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
