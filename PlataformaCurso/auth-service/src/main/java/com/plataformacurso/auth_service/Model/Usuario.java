@@ -1,15 +1,15 @@
 package com.plataformacurso.auth_service.Model;
 
-public class UsuarioRequest {
+public class Usuario {
     private String username;
     private String password;
 
     // Constructor vacío (obligatorio para que Spring/Jackson transformen el JSON que viene del frontend)
-    public UsuarioRequest() {
+    public Usuario() {
     }
 
     // Constructor con parámetros
-    public UsuarioRequest(String username, String password) {
+    public Usuario(String username, String password) {
         this.username = username;
         this.password = password;
     }

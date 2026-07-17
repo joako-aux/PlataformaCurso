@@ -1,4 +1,4 @@
-package com.plataformacurso.auth_service.DTO;
+package com.plataformacurso.auth_service.Model;
 
 public class LoginRequest {
     private String username;
