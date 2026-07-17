@@ -1,6 +1,9 @@
 package com.plataformacurso.usuario_service.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,27 +14,35 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "El nombre es obligatorio y no puede estar vacío")
+    @Size(max = 100, message = "El nombre no puede superar los 100 caracteres")
     @Column(nullable = false, length = 100)
     private String nombre;
 
+    @NotBlank(message = "El apellido es obligatorio y no puede estar vacío")
+    @Size(max = 100, message = "El apellido no puede superar los 100 caracteres")
     @Column(nullable = false, length = 100)
     private String apellido;
 
+    @Size(max = 20, message = "El teléfono no puede superar los 20 caracteres")
     @Column(length = 20)
     private String telefono;
 
+    @Size(max = 255, message = "La dirección no puede superar los 255 caracteres")
     @Column(length = 255)
     private String direccion;
 
+    @NotNull(message = "El rol es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Rol rol;
 
+    @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Estado estado;
 
-    @Column(name = "fecha_registro", nullable = false, updatable = false)
+    @Column(name = "fecha_registro", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fechaRegistro;
 
     @Column(name = "fecha_actualizacion")

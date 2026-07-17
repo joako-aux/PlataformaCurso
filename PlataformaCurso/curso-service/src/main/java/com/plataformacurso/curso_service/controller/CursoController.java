@@ -2,6 +2,7 @@ package com.plataformacurso.curso_service.controller;
 
 import com.plataformacurso.curso_service.model.Curso;
 import com.plataformacurso.curso_service.service.CursoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,32 +31,26 @@ public class CursoController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // POST /cursos
+    // POST /cursos (Validación activada para creación)
     @PostMapping
-    public ResponseEntity<Curso> crearCurso(@RequestBody Curso curso) {
+    public ResponseEntity<Curso> crearCurso(@Valid @RequestBody Curso curso) {
+        // Ejecuta todas las validaciones del modelo, incluyendo el método custom isFechaFinValida()
         Curso nuevoCurso = cursoService.guardar(curso);
         return new ResponseEntity<>(nuevoCurso, HttpStatus.CREATED);
     }
 
-    // PUT /cursos/{id}
+    // PUT /cursos/{id} (Validación activada para actualización)
     @PutMapping("/{id}")
-    public ResponseEntity<Curso> actualizarCurso(@PathVariable Long id, @RequestBody Curso cursoDetalles) {
-        try {
-            Curso cursoActualizado = cursoService.actualizar(id, cursoDetalles);
-            return ResponseEntity.ok(cursoActualizado);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Curso> actualizarCurso(@PathVariable Long id, @Valid @RequestBody Curso cursoDetalles) {
+        // Al agregar @Valid aquí, evitas que en una actualización dañen la coherencia de los datos
+        Curso cursoActualizado = cursoService.actualizar(id, cursoDetalles);
+        return ResponseEntity.ok(cursoActualizado);
     }
 
     // DELETE /cursos/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarCurso(@PathVariable Long id) {
-        try {
-            cursoService.eliminar(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        cursoService.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 }

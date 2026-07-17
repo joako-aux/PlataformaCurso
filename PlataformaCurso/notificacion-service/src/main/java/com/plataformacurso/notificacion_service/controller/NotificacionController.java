@@ -2,6 +2,7 @@ package com.plataformacurso.notificacion_service.controller;
 
 import com.plataformacurso.notificacion_service.model.Notificacion;
 import com.plataformacurso.notificacion_service.service.NotificacionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,9 @@ public class NotificacionController {
     private NotificacionService notificacionService;
 
     @PostMapping
-    public ResponseEntity<Notificacion> crearNotificacion(@RequestBody Notificacion notificacion) {
+    public ResponseEntity<Notificacion> crearNotificacion(@Valid @RequestBody Notificacion notificacion) {
+        // Al agregar @Valid, si el JSON viene sin usuarioId o con mensaje vacío,
+        // Spring frena la petición automáticamente y devuelve un 400 Bad Request.
         Notificacion nueva = notificacionService.registrarNotificacion(notificacion);
         return new ResponseEntity<>(nueva, HttpStatus.CREATED);
     }

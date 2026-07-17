@@ -1,4 +1,4 @@
-package com.plataformacurso.usuario_service.service;
+package com.plataformacurso.usuario_service.Service;
 
 import com.plataformacurso.usuario_service.model.Usuario;
 import com.plataformacurso.usuario_service.repository.UsuarioRepository;

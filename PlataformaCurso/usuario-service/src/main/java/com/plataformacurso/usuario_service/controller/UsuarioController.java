@@ -1,7 +1,9 @@
 package com.plataformacurso.usuario_service.controller;
 
+import com.plataformacurso.usuario_service.Service.UsuarioService;
 import com.plataformacurso.usuario_service.model.Usuario;
-import com.plataformacurso.usuario_service.service.UsuarioService;
+
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +22,9 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    // Endpoint para guardar un usuario
+    // Endpoint para guardar un usuario (Con validación activada)
     @PostMapping
-    public ResponseEntity<Usuario> crearUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> crearUsuario(@Valid @RequestBody Usuario usuario) {
         Usuario nuevoUsuario = usuarioService.guardarUsuario(usuario);
         return new ResponseEntity<>(nuevoUsuario, HttpStatus.CREATED);
     }
