@@ -1,4 +1,4 @@
-# Read Me First
+[Dockerfile](../usuario-service/Dockerfile)# Read Me First
 The following was discovered as part of building this project:
 
 * The original package name 'com.plataformacurso.notificacion-service' is invalid and this project uses 'com.plataformacurso.notificacion_service' instead.
