@@ -31,9 +31,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 🌟 EXCEPCIÓN: Si va a login o registro, ignoramos el filtro por completo
-        String servletPath = request.getServletPath();
-        if (servletPath.contains("/api/auth/login") || servletPath.contains("/api/auth/register")) {
+        String requestURI = request.getRequestURI();
+
+        // Si es una ruta de autenticación, salimos del filtro INMEDIATAMENTE
+        if (requestURI.contains("/api/auth") || requestURI.contains("/register") || requestURI.contains("/login")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -42,20 +43,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        // Comprobamos que el header tenga el formato Bearer esperado
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt); // Extrae el email del token
+        userEmail = jwtService.extractUsername(jwt);
 
-        // Si hay un email válido y el usuario no está ya autenticado en el contexto de Spring
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            // Validamos si el token es correcto y no ha expirado
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -65,7 +63,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
-                // Autenticamos al usuario en el sistema
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }

@@ -2,6 +2,7 @@ package com.plataformacurso.auth_service.Controller;
 
 import com.plataformacurso.auth_service.Model.AuthResponse;
 import com.plataformacurso.auth_service.Model.LoginRequest;
+import com.plataformacurso.auth_service.Model.RegisterRequest;
 import com.plataformacurso.auth_service.Service.AuthService;
 import com.plataformacurso.auth_service.Service.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,18 @@ public class AuthController {
         AuthResponse authResponse = authService.login(loginRequest);
 
         // Extraemos el string del token que está guardado dentro del objeto AuthResponse
+        String token = authResponse.getToken();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("Token Generado", token);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterRequest registerRequest) {
+        AuthResponse authResponse = authService.register(registerRequest);
+
         String token = authResponse.getToken();
 
         Map<String, String> response = new HashMap<>();
