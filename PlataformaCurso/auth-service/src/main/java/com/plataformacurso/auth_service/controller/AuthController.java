@@ -1,8 +1,8 @@
-package com.plataformacurso.auth_service.Controller;
+package com.plataformacurso.auth_service.controller;
 
 
 import com.plataformacurso.auth_service.dto.AuthRequest;
-import com.plataformacurso.auth_service.Service.AuthService;
+import com.plataformacurso.auth_service.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired

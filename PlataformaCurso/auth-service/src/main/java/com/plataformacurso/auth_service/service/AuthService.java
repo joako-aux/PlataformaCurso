@@ -1,8 +1,7 @@
-package com.plataformacurso.auth_service.Service;
+package com.plataformacurso.auth_service.service;
 
 import com.plataformacurso.auth_service.entity.UserAuth;
-import com.plataformacurso.auth_service.Repository.UserAuthRepository;
-import com.plataformacurso.auth_service.dto.AuthRequest;
+import com.plataformacurso.auth_service.repository.UserAuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

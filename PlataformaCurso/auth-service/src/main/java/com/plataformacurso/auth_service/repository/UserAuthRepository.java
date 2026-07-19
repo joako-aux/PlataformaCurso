@@ -1,4 +1,4 @@
-package com.plataformacurso.auth_service.Repository;
+package com.plataformacurso.auth_service.repository;
 
 
 import com.plataformacurso.auth_service.entity.UserAuth;

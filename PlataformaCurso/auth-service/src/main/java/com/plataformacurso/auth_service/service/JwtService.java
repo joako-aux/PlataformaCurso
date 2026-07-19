@@ -1,4 +1,4 @@
-package com.plataformacurso.auth_service.Service;
+package com.plataformacurso.auth_service.service;
 
 
 import io.jsonwebtoken.Jwts;
