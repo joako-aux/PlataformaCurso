@@ -1,0 +1,41 @@
+name: Deploy Plataforma Curso a AWS
+
+on:
+  push:
+    branches: [ "main" ]  # Se activa automáticamente cuando subes cambios a la rama main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar el código en el servidor de GitHub
+      uses: actions/checkout@v4
+
+    - name: Ejecutar comandos en AWS usando SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.AWS_HOST }}          # Tu IP pública de AWS (guardada en Secrets)
+        username: ${{ secrets.AWS_USER }}      # Por defecto es ubuntu o ec2-user
+        key: ${{ secrets.AWS_SSH_KEY }}        # Tu llave privada .pem (guardada en Secrets)
+        port: 22
+        script: |
+          # 1. Detener y borrar versiones viejas del contenedor si ya existen
+          docker stop notificaciones-service || true
+          docker rm notificaciones-service || true
+          
+          # 2. Limpiar la carpeta antigua para no tener conflictos
+          rm -rf PlataformaCursoRepo
+          
+          # 3. Clonar de nuevo el repositorio limpio dentro de tu AWS
+          git clone https://github.com/joako-aux/PlataformaCurso.git PlataformaCursoRepo
+          
+          # 4. Entrar a la carpeta donde está el código de Spring Boot
+          # (Si tu Dockerfile está dentro de otra subcarpeta, ajusta esta ruta)
+          cd PlataformaCursoRepo/PlataformaCurso
+          
+          # 5. Construir la imagen de Docker usando el Dockerfile de Notificaciones
+          docker build -t notificaciones-img .
+          
+          # 6. Encender el microservicio mapeando el puerto 80 externo de AWS al 8086 interno de tu app
+          docker run -d --name notificaciones-service -p 80:8086 notificaciones-img
