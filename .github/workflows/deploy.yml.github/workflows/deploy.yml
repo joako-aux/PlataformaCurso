@@ -1,0 +1,39 @@
+name: Deploy Plataforma Curso a AWS
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout del codigo
+      uses: actions/checkout@v4
+
+    - name: Desplegar en servidor de AWS via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          # Detener contenedores antiguos si existen para evitar conflictos de puerto
+          docker stop plataforma-curso || true
+          docker rm plataforma-curso || true
+          
+          # Ir a la carpeta del proyecto (o clonar/actualizar si es necesario)
+          # NOTA: Como ejemplo directo, crearemos una estructura basica o puedes compilar
+          # Si tienes un Dockerfile en la raiz del proyecto, ejecuta lo siguiente:
+          
+          # Borramos la carpeta antigua para traer lo nuevo
+          rm -rf PlataformaCursoRepo
+          git clone https://github.com/joako-aux/PlataformaCurso.git PlataformaCursoRepo
+          cd PlataformaCursoRepo/PlataformaCurso
+          
+          # Construir la imagen Docker basada en tu proyecto
+          docker build -t plataforma-curso-img .
+          
+          # Correr el contenedor mapeando el puerto 80 del servidor al puerto de tu app (ej: 80 o 8080)
+          docker run -d --name plataforma-curso -p 80:80 plataforma-curso-img
