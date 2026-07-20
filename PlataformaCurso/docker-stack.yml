@@ -1,0 +1,210 @@
+# ============================================================
+# Stack para Docker Swarm
+# Uso:
+#   docker stack deploy -c docker-stack.yml plataforma
+#
+# A diferencia de docker-compose.yml (uso local con `build:`),
+# Swarm no construye imágenes: usa imágenes ya publicadas en un
+# registro (se generan y suben en el pipeline de CI/CD, ver
+# .github/workflows/ci-cd.yml). Definir las variables antes de
+# desplegar, por ejemplo:
+#   export IMAGE_PREFIX=ghcr.io/tu-usuario/plataformacurso
+#   export IMAGE_TAG=latest
+# ============================================================
+version: "3.8"
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - plataforma-network
+    ports:
+      - "3306:3306"
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+
+  register-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/register-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8761
+    networks:
+      - plataforma-network
+    ports:
+      - "8761:8761"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  apigateway:
+    image: ${IMAGE_PREFIX:-plataformacurso}/apigateway:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8080
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  auth-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/auth-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8081
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8081:8081"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  usuario-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/usuario-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8082
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8082:8082"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  curso-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/curso-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8083
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8083:8083"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  inscripcion-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/inscripciones-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8084
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8084:8084"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  historial-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/historial-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8085
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+    networks:
+      - plataforma-network
+    ports:
+      - "8085:8085"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+  notificacion-service:
+    image: ${IMAGE_PREFIX:-plataformacurso}/notificacion-service:${IMAGE_TAG:-latest}
+    environment:
+      SERVER_PORT: 8086
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: admin
+      EUREKA_SERVER: http://register-service:8761/eureka/
+      JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL:-}
+    networks:
+      - plataforma-network
+    ports:
+      - "8086:8086"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        order: start-first
+
+volumes:
+  mysql_data:
+
+networks:
+  plataforma-network:
+    driver: overlay
+    attachable: true

@@ -19,9 +19,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ==========================================
-  # Servidor de Descubrimiento (Eureka)
-  # ==========================================
   register-service:
     build: ./register-service
     container_name: register-service
@@ -32,14 +29,12 @@ services:
     networks:
       - plataforma-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # API Gateway
-  # ==========================================
   apigateway:
     build: ./apigateway
     container_name: apigateway
@@ -54,10 +49,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Autenticación
-  # ==========================================
   auth-service:
     build: ./auth-service
     container_name: auth-service
@@ -78,10 +76,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Usuarios
-  # ==========================================
   usuario-service:
     build: ./usuario-service
     container_name: usuario-service
@@ -102,10 +103,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Cursos
-  # ==========================================
   curso-service:
     build: ./curso-service
     container_name: curso-service
@@ -126,10 +130,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8083/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Inscripciones
-  # ==========================================
   inscripcion-service:
     build: ./inscripciones-service
     container_name: inscripcion-service
@@ -150,10 +157,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8084/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Historial
-  # ==========================================
   historial-service:
     build: ./historial-service
     container_name: historial-service
@@ -174,10 +184,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8085/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ==========================================
-  # Microservicio de Notificaciones
-  # ==========================================
   notificacion-service:
     build: ./notificacion-service
     container_name: notificacion-service
@@ -191,6 +204,8 @@ services:
       DB_PASSWORD: admin
       EUREKA_SERVER: http://register-service:8761/eureka/
       JWT_SECRET: PlataformaCursoSecretKeyForJwtAuthentication2026SuperSecret
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL:-}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -198,10 +213,13 @@ services:
         condition: service_healthy
     networks:
       - plataforma-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8086/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-# ==========================================
-# Volúmenes y Redes Comunes
-# ==========================================
 volumes:
   mysql_data:
 

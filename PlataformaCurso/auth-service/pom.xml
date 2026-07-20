@@ -3,11 +3,13 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
+
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.7</version>
 	</parent>
+
 
 	<groupId>com.plataformacurso</groupId>
 	<artifactId>auth-service</artifactId>
@@ -15,10 +17,14 @@
 	<name>auth-service</name>
 	<description>Identity and Authentication Service para Plataforma de Cursos</description>
 
+
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<java.version>17</java.version>
 		<spring-cloud.version>2023.0.3</spring-cloud.version>
 	</properties>
+
 
 	<dependencies>
 		<!-- Web -->
@@ -27,11 +33,13 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 
+
 		<!-- Security -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
+
 
 		<!-- JPA (Base de Datos) -->
 		<dependency>
@@ -39,17 +47,20 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
+
 		<!-- Validation (@Valid, @NotBlank, etc.) -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
+
 		<!-- Eureka Client -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
+
 
 		<!-- JWT (JJWT 0.12.6) - Versión moderna estandarizada -->
 		<dependency>
@@ -70,11 +81,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
 		<!-- LoadBalancer -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-loadbalancer</artifactId>
 		</dependency>
+
 
 		<!-- Swagger (OpenAPI 3 para Spring Boot 3 WebMVC) -->
 		<dependency>
@@ -83,6 +96,7 @@
 			<version>2.5.0</version>
 		</dependency>
 
+
 		<!-- MySQL Connector -->
 		<dependency>
 			<groupId>com.mysql</groupId>
@@ -90,12 +104,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 
 		<!-- Test -->
 		<dependency>
@@ -108,7 +124,12 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
 	</dependencies>
+
 
 	<dependencyManagement>
 		<dependencies>
@@ -121,6 +142,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+
 
 	<build>
 		<plugins>
