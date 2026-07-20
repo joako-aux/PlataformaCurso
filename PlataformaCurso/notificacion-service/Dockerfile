@@ -24,7 +24,7 @@ FROM eclipse-temurin:17-jre-alpine
 RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /app
 
-COPY --from=build /build/target/*.jar app.jar
+COPY --from=build /build/target/notificacion-service-0.0.1-SNAPSHOT.jar app.jar
 RUN chown spring:spring app.jar
 USER spring
 

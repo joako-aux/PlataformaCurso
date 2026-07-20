@@ -6,7 +6,7 @@ services:
     image: mysql:8.0
     container_name: mysql-db
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: admin
     volumes:
@@ -14,10 +14,21 @@ services:
     networks:
       - plataforma-network
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-padmin"
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 60s
 
   register-service:
     build: ./register-service
@@ -158,11 +169,18 @@ services:
     networks:
       - plataforma-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8084/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--spider",
+          "-q",
+          "http://localhost:8081/actuator/health"
+        ]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 150s
 
   historial-service:
     build: ./historial-service

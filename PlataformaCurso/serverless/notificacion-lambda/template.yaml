@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Función serverless de notificaciones para PlataformaCurso.
+  Expone un endpoint via API Gateway (productor), que encola un
+  mensaje en SQS. Una segunda función Lambda (consumidor) procesa
+  la cola y, si está configurado, llama al notificacion-service.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 10
+    MemorySize: 128
+    Environment:
+      Variables:
+        NOTIFICACION_SERVICE_URL: !Ref NotificacionServiceUrl
+
+Parameters:
+  NotificacionServiceUrl:
+    Type: String
+    Default: ""
+    Description: >
+      URL pública del notificacion-service (opcional). Si se define,
+      la función consumidora reenvía la notificación procesada al
+      microservicio real.
+  ApiKeyRequired:
+    Type: String
+    Default: "true"
+
+Resources:
+  # ==========================================
+  # Cola SQS (IE11 / IE14)
+  # ==========================================
+  NotificacionesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: plataformacurso-notificaciones
+      VisibilityTimeout: 30
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt NotificacionesDLQ.Arn
+        maxReceiveCount: 5
+
+  NotificacionesDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: plataformacurso-notificaciones-dlq
+
+  # ==========================================
+  # API Gateway con API Key (IE12: protege el backend)
+  # ==========================================
+  NotificacionesApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        ApiKeyRequired: true
+      UsagePlan:
+        CreateUsagePlan: PER_API
+        UsagePlanName: PlataformaCursoUsagePlan
+        Throttle:
+          RateLimit: 10
+          BurstLimit: 20
+
+  # ==========================================
+  # Función PRODUCTORA (IE10 / IE13 / IE14)
+  # Recibe POST /notificaciones y encola el mensaje
+  # ==========================================
+  EnviarNotificacionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/enviarNotificacion.handler
+      CodeUri: .
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt NotificacionesQueue.QueueName
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref NotificacionesQueue
+      Events:
+        PostNotificacion:
+          Type: Api
+          Properties:
+            RestApiId: !Ref NotificacionesApi
+            Path: /notificaciones
+            Method: POST
+
+  # ==========================================
+  # Función CONSUMIDORA (IE10 / IE13 / IE14)
+  # Disparada por mensajes en la cola SQS
+  # ==========================================
+  ProcesarNotificacionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/procesarNotificacion.handler
+      CodeUri: .
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt NotificacionesQueue.QueueName
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt NotificacionesQueue.Arn
+            BatchSize: 5
+
+Outputs:
+  ApiEndpoint:
+    Description: "Endpoint del API Gateway para enviar notificaciones"
+    Value: !Sub "https://${NotificacionesApi}.execute-api.${AWS::Region}.amazonaws.com/prod/notificaciones"
+  QueueUrl:
+    Description: "URL de la cola SQS de notificaciones"
+    Value: !Ref NotificacionesQueue
+  QueueArn:
+    Description: "ARN de la cola SQS de notificaciones"
+    Value: !GetAtt NotificacionesQueue.Arn
