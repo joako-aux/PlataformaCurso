@@ -1,0 +1,8 @@
+{
+  "name": "notificacion-lambda",
+  "version": "1.0.0",
+  "description": "Funciones serverless (FaaS) de notificaciones para PlataformaCurso",
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.600.0"
+  }
+}
